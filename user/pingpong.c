@@ -2,30 +2,39 @@
 #include "kernel/stat.h"
 #include "user/user.h"
 
-int main(){
-    int pipeLine[2];
-    char receiveBuff[5];
+int
+main() {
+  int p2c[2], c2p[2];
+  int child_id;
+  char *ping = "ping";
+  char *pong = "pong";
+  char buf[512] = {0};
 
-    pipe(pipeLine);
-    int pid = fork(); //Tạo tiến trình con
+  pipe(p2c);
+  pipe(c2p);
 
-    if(pid == 0){
-        //Tiến trình con
-        read(pipeLine[0], receiveBuff, 5);
-        printf("%d:  received %s\n", getpid(), receiveBuff);
-        close(pipeLine[0]);
+  child_id = fork();
+  if (child_id != 0) {
+    //parent
+    close(p2c[0]);
+    close(c2p[1]);
 
-        write(pipeLine[1], "pong", 5);
-        close(pipeLine[1]);
-    }else{
-        //Tiến trình cha
-        write(pipeLine[1], "ping", 5);
-        wait(0);
-        close(pipeLine[1]); 
+    write(p2c[1], ping, strlen(ping));
 
-        read(pipeLine[0], receiveBuff, 5);
-        printf("%d:  received %s\n", getpid(), receiveBuff);
-        close(pipeLine[0]);
-    }
+    //wait((int *)0);
+    read(c2p[0], buf, sizeof(buf));
+    printf("%d: received %s\n", getpid(), buf);
     exit(0);
+  } else {
+    //child
+    close(p2c[1]);
+    close(c2p[0]);
+
+    read(p2c[0], buf, sizeof(buf));
+    printf("%d: received %s\n", getpid(), buf);
+
+    write(c2p[1], pong, strlen(pong));
+    exit(0);
+  }
+
 }

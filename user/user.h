@@ -41,3 +41,7 @@ void *memcpy(void *, const void *, uint);
 // umalloc.c
 void* malloc(uint);
 void free(void*);
+
+//Trace
+#define SYS_trace 22 
+int trace(int);  // Nguyên mẫu lệnh gọi hệ thống trace
